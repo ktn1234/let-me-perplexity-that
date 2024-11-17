@@ -3,26 +3,21 @@ import config from "../config";
 import Button from "../components/ui/Button";
 import MouseCursor from "../components/ui/MouseCursor";
 
+const DEFAULT_INFO = "Ask and you shall receive";
+const STEP_ONE = "Step 1: Type in your question";
+const STEP_TWO = "Step 2: Click the 'Ask Me' button";
+const STEP_THREE = "Come on... Was it really that hard?";
+
 function HomePage() {
   const [searchText, setSearchText] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string>("");
   const [info, setInfo] = useState<string>(() => {
-    // Check if there are query params in the URL
-    const queryParams = new URLSearchParams(window.location.search);
-    const query = queryParams.get("q");
-
-    if (!!query) {
-      return "Step 1: Type in your question";
-    }
-
-    return "Ask and you shall receive";
+    const query = new URLSearchParams(window.location.search).get("q");
+    return query ? STEP_ONE : DEFAULT_INFO;
   });
-  const [hasQueryParams] = useState<boolean>(() => {
-    // Check if there are query params in the URL
-    const queryParams = new URLSearchParams(window.location.search);
-    const query = queryParams.get("q");
-    return !!query;
-  });
+  const [hasQueryParams] = useState<boolean>(
+    () => !!new URLSearchParams(window.location.search).get("q")
+  );
 
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -30,11 +25,9 @@ function HomePage() {
   const infoRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // Get query params from URL
-    const queryParams = new URLSearchParams(window.location.search);
-    const query = queryParams.get("q");
+    // Get query param "q" from URL
+    const query = new URLSearchParams(window.location.search).get("q");
 
-    // Move cursor to the input field (1/4 from the left edge)
     if (inputRef.current && cursorRef.current && query) {
       const inputRect = inputRef.current.getBoundingClientRect();
       animateCursorToInput(inputRect, query);
@@ -119,7 +112,7 @@ function HomePage() {
         requestAnimationFrame(type); // Continue the typing animation
       } else {
         if (infoRef.current) {
-          infoRef.current.innerHTML = "Step 2: Click the 'Ask Me' button";
+          infoRef.current.innerHTML = STEP_TWO;
         }
 
         animateCursorToAskMeButton(query);
@@ -186,7 +179,7 @@ function HomePage() {
             askMeButtonRef.current.focus();
 
             if (infoRef.current) {
-              infoRef.current.innerHTML = "Come on... Was it really that hard?";
+              infoRef.current.innerHTML = STEP_THREE;
             }
 
             // After typing is complete, wait a few seconds and then redirect to Perplexity AI
@@ -239,18 +232,16 @@ function HomePage() {
         <h1 className="font-bold text-2xl mb-6">
           Let Me Perplexity That For You...
         </h1>
-        <div>
-          <input
-            ref={inputRef}
-            className="text-black rounded-full w-96 px-5 py-3 focus:outline-none hover:shadow hover:shadow-quaterternary transition-shadow duration-300"
-            type="text"
-            placeholder="Type your question here..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            autoFocus={!hasQueryParams}
-          />
-        </div>
+        <input
+          ref={inputRef}
+          className="text-black rounded-full w-96 px-5 py-3 focus:outline-none hover:shadow hover:shadow-quaterternary transition-shadow duration-300"
+          type="text"
+          placeholder="Type your question here..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          autoFocus={!hasQueryParams}
+        />
         {/* Ask Me Button */}
         <div className="mt-4">
           <Button onClick={handleSearch} ref={askMeButtonRef}>
