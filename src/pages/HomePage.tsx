@@ -177,6 +177,7 @@ function HomePage() {
           // Focus the "Ask Me" button after the cursor movement is complete
           if (askMeButtonRef.current) {
             askMeButtonRef.current.focus();
+            askMeButtonRef.current.classList.add("focus:bg-quaterternary");
 
             if (infoRef.current) {
               infoRef.current.innerHTML = STEP_THREE;
@@ -257,7 +258,7 @@ function HomePage() {
       {searchResults && (
         <section className="mt-8 flex flex-col justify-center items-center">
           <a
-            className="text-quaterternary underline w-3/4 md:w-1/2 truncate block hover:text-sky-600"
+            className="text-quaterternary underline max-w-[75%] md:max-w-[50%] truncate block hover:text-sky-600"
             href={searchResults}
             target="_blank"
             rel="noreferrer"
