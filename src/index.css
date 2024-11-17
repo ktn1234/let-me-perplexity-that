@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom CSS */
+
+html {
+  @apply bg-primary;
+  @apply text-[#E8E8E6]; /* Font color - Perplexity White */
+}
