@@ -75,7 +75,7 @@ function HomePage() {
       {searchResults && (
         <section className="mt-8 flex flex-col justify-center items-center">
           <a
-            className="text-blue-500 underline w-3/4 md:w-1/2 truncate block hover:text-blue-700"
+            className="text-quaterternary underline w-3/4 md:w-1/2 truncate block hover:text-sky-600"
             href={searchResults}
             target="_blank"
             rel="noreferrer"
