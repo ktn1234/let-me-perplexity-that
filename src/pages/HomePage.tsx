@@ -200,7 +200,7 @@ function HomePage() {
 
   // Handle search logic when "Enter" is pressed
   const handleSearch = () => {
-    const url = new URL(window.location.href);
+    const url = new URL(window.location.origin);
     url.searchParams.append("q", searchText);
     setSearchResults(url.toString());
     setInfo("All Done! Share the link below");
