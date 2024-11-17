@@ -1,5 +1,7 @@
 # Let Me Perplexity That
 
+Did someone ask you a question that they could've answered themselves asking AI? Let me perplexity that.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
