@@ -234,7 +234,7 @@ function HomePage() {
         </h1>
         <input
           ref={inputRef}
-          className="text-black rounded-full w-96 px-5 py-3 focus:outline-none hover:shadow hover:shadow-quaterternary transition-shadow duration-300"
+          className="text-black rounded-full w-full min-[424px]:w-96 px-5 py-3 focus:outline-none hover:shadow hover:shadow-quaterternary transition-shadow duration-300"
           type="text"
           placeholder="Type your question here..."
           value={searchText}
