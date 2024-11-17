@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import config from "../config";
 import Button from "../components/ui/Button";
 
 function HomePage() {
   const [searchText, setSearchText] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string>("");
+
+  useEffect(() => {
+    // Get query params from URL
+    const queryParams = new URLSearchParams(window.location.search);
+    const query = queryParams.get("q");
+
+    // If query exists, set it as search text
+    if (query) {
+      setSearchText(query);
+      handleSearch();
+    }
+  }, []);
 
   // Handle search logic
   const handleSearch = () => {
@@ -39,14 +51,17 @@ function HomePage() {
         <h1 className="font-bold text-2xl mb-6">
           Let Me Perplexity That For You...
         </h1>
-        <input
-          className="text-black rounded-full w-96 px-5 py-3 focus:outline-none"
-          type="text"
-          placeholder="Type your question here..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-        />
+        <div className="">
+          <input
+            className="text-black rounded-full w-96 px-5 py-3 focus:outline-none hover:shadow hover:shadow-quaterternary transition-shadow duration-300"
+            type="text"
+            placeholder="Type your question here..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            autoFocus
+          />
+        </div>
         {/* Ask Me Button */}
         <div className="mt-4">
           <Button onClick={handleSearch}>Ask Me</Button>
