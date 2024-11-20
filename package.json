@@ -11,6 +11,7 @@
     "gen:pwa": "npx pwa-asset-generator ./public/perplexity-icon.svg assets --background \"#191A1A\" --xhtml -w -t png -m && mv assets public/assets"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.4.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
