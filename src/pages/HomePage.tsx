@@ -28,175 +28,126 @@ function HomePage() {
     // Get query param "q" from URL
     const query = new URLSearchParams(window.location.search).get("q");
 
-    if (inputRef.current && cursorRef.current && query) {
-      const inputRect = inputRef.current.getBoundingClientRect();
-      animateCursorToInput(inputRect, query);
+    if (
+      inputRef.current &&
+      cursorRef.current &&
+      askMeButtonRef.current &&
+      infoRef.current &&
+      query
+    ) {
+      const input = inputRef.current;
+      const cursor = cursorRef.current;
+      const button = askMeButtonRef.current;
+      const info = infoRef.current;
+
+      // Get the input field position and size
+      const inputRect = input.getBoundingClientRect();
+
+      // Calculate the target position (input field) for the cursor
+      const inputTargetX = inputRect.left + inputRect.width / 4;
+      const inputTargetY = inputRect.top + inputRect.height / 4;
+
+      // Animate the cursor to the target position (input field) using the Web Animations API with easing
+      const animateCursorToInput = cursor.animate(
+        [
+          {
+            transform: `translate(${cursor.style.transform || "0px, 0px"})`, // Starting position (initially at 0)
+          },
+          {
+            transform: `translate(${inputTargetX}px, ${inputTargetY}px)`, // Final position after animation
+          },
+        ],
+        {
+          duration: 2000,
+          easing: "ease-in-out",
+        }
+      );
+
+      // Set up the onfinish event to call simulateTyping after the animation is complete
+      animateCursorToInput.onfinish = async () => {
+        // Update the cursor's transform property to the final position to ensure it stays there
+        cursor.style.transform = `translate(${inputTargetX}px, ${inputTargetY}px)`;
+
+        // Call simulateTyping with the query after the animation is done
+        await simulateTyping(query, input);
+        info.innerHTML = STEP_TWO;
+
+        // Get the "Ask Me" button position and size
+        const buttonRect = button.getBoundingClientRect();
+
+        // Calculate the target position (center of the button) for the cursor
+        const buttonTargetX = buttonRect.left + buttonRect.width / 3;
+        const buttonTargetY = buttonRect.top + buttonRect.height / 5;
+
+        // Animate the cursor to the target position (center of the button) using the Web Animations API with easing
+        const animateCursorToButton = cursor.animate(
+          [
+            {
+              transform: `translate(${cursor.style.transform || "0px, 0px"})`, // Starting position (initially at 0)
+            },
+            {
+              transform: `translate(${buttonTargetX}px, ${buttonTargetY}px)`, // Final position after animation
+            },
+          ],
+          {
+            duration: 2000,
+            easing: "ease-in-out",
+          }
+        );
+
+        animateCursorToButton.onfinish = () => {
+          // Update the cursor's transform property to the final position to ensure it stays there
+          cursor.style.transform = `translate(${buttonTargetX}px, ${buttonTargetY}px)`;
+
+          button.focus();
+          button.classList.add("focus:bg-quaterternary");
+          info.innerHTML = STEP_THREE;
+
+          // Wait a few seconds and then redirect to Perplexity AI
+          setTimeout(() => {
+            const url = new URL(config.PERPLEXITY_URL);
+            url.pathname = "/search";
+            url.searchParams.append("q", query);
+
+            // Redirect the current window to Perplexity AI
+            window.location.href = url.toString();
+          }, 3000);
+        };
+      };
     }
   }, []);
 
-  // Easing function (ease-in-out)
-  const easeInOut = (t: number) => {
-    return 0.5 - 0.5 * Math.cos(Math.PI * t);
-  };
-
-  // Function to animate cursor to the input field with easing
-  const animateCursorToInput = (inputRect: DOMRect, query: string) => {
-    const cursor = cursorRef.current;
-    if (cursor) {
-      const targetX = inputRect.left + inputRect.width / 8; // Target position: 1/8 of the way across the input field (from left edge)
-      const targetY = inputRect.top + inputRect.height / 3; // Target position: 1/3 of the way down the input field
-
-      // Get the initial cursor position (center of the cursor)
-      const cursorRect = cursor.getBoundingClientRect();
-      const startX = cursorRect.left + cursorRect.width / 2;
-      const startY = cursorRect.top + cursorRect.height / 2;
-
-      // Calculate the distance to move
-      const distanceX = targetX - startX;
-      const distanceY = targetY - startY;
-
-      // Time duration for the animation (in milliseconds)
-      const duration = 2000;
-      const steps = 100; // Number of steps to take during the animation (more steps = smoother animation)
-      const intervalTime = duration / steps;
-
-      let currentStep = 0;
-
-      // Animate cursor movement over the given duration
-      const moveCursor = setInterval(() => {
-        currentStep++;
-
-        // Calculate progress (t) of the animation
-        const t = currentStep / steps;
-
-        // Apply easing function to progress
-        const easedT = easeInOut(t);
-
-        // Calculate the new position of the cursor based on eased progress
-        const moveX = distanceX * easedT;
-        const moveY = distanceY * easedT;
-
-        // Set the cursor's new position, adjusting for cursor size (to keep it centered)
-        cursor.style.transform = `translate(${
-          startX + moveX - cursor.offsetWidth / 2
-        }px, ${startY + moveY - cursor.offsetHeight / 2}px)`;
-
-        // If we've completed the animation, stop the interval and focus the input
-        if (currentStep === steps) {
-          clearInterval(moveCursor);
-
-          // Focus the search bar after the cursor movement is complete
-          if (inputRef.current) {
-            inputRef.current.focus();
-            simulateTyping(query);
-          }
-        }
-      }, intervalTime);
-    }
-  };
-
   // Smooth typing animation using requestAnimationFrame
-  const simulateTyping = (query: string) => {
-    const typingDuration = 1500; // Total typing time (in milliseconds)
-    const typingSpeed = typingDuration / query.length; // Time per character
+  function simulateTyping(
+    query: string,
+    input: HTMLInputElement
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      input.focus(); // Focus the input field
+      const typingDuration = 1500; // Total typing time (in milliseconds)
+      const typingSpeed = typingDuration / query.length; // Time per character
 
-    const startTime = performance.now();
+      const startTime = performance.now();
+      const type = (time: number) => {
+        const elapsedTime = time - startTime;
+        const charCount = Math.floor(elapsedTime / typingSpeed);
 
-    const type = (time: number) => {
-      const elapsedTime = time - startTime;
-      const charCount = Math.floor(elapsedTime / typingSpeed);
-
-      // Update the searchText based on the number of characters typed
-      if (charCount <= query.length) {
-        setSearchText(query.substring(0, charCount));
-        requestAnimationFrame(type); // Continue the typing animation
-      } else {
-        if (infoRef.current) {
-          infoRef.current.innerHTML = STEP_TWO;
+        // Update the searchText based on the number of characters typed
+        if (charCount <= query.length) {
+          setSearchText(query.substring(0, charCount));
+          requestAnimationFrame(type); // Continue the typing animation
         }
 
-        animateCursorToAskMeButton(query);
-      }
-    };
-
-    // Start the typing animation
-    requestAnimationFrame(type);
-  };
-
-  // Function to animate cursor to the "Ask Me" button with easing
-  const animateCursorToAskMeButton = (query: string) => {
-    const cursor = cursorRef.current;
-    const askMeButton = askMeButtonRef.current;
-
-    if (cursor && askMeButton) {
-      const buttonRect = askMeButton.getBoundingClientRect();
-
-      // Target position: center of the "Ask Me" button
-      const targetX = buttonRect.left + buttonRect.width / 2;
-      const targetY = buttonRect.top + buttonRect.height / 2;
-
-      // Get the initial cursor position (center of the cursor)
-      const cursorRect = cursor.getBoundingClientRect();
-      const startX = cursorRect.left + cursorRect.width / 2;
-      const startY = cursorRect.top + cursorRect.height / 2;
-
-      // Calculate the distance to move
-      const distanceX = targetX - startX;
-      const distanceY = targetY - startY;
-
-      // Time duration for the animation (in milliseconds)
-      const duration = 1500; // You can adjust this duration to make it faster/slower
-      const steps = 100; // Number of steps to take during the animation (more steps = smoother animation)
-      const intervalTime = duration / steps;
-
-      let currentStep = 0;
-
-      // Animate cursor movement over the given duration
-      const moveCursor = setInterval(() => {
-        currentStep++;
-
-        // Calculate progress (t) of the animation
-        const t = currentStep / steps;
-
-        // Apply easing function to progress
-        const easedT = easeInOut(t);
-
-        // Calculate the new position of the cursor based on eased progress
-        const moveX = distanceX * easedT;
-        const moveY = distanceY * easedT;
-
-        // Set the cursor's new position, adjusting for cursor size (to keep it centered)
-        cursor.style.transform = `translate(${
-          startX + moveX - cursor.offsetWidth / 2
-        }px, ${startY + moveY - cursor.offsetHeight / 2}px)`;
-
-        // If we've completed the animation, stop the interval and focus the Ask Me button
-        if (currentStep === steps) {
-          clearInterval(moveCursor);
-
-          // Focus the "Ask Me" button after the cursor movement is complete
-          if (askMeButtonRef.current) {
-            askMeButtonRef.current.focus();
-            askMeButtonRef.current.classList.add("focus:bg-quaterternary");
-
-            if (infoRef.current) {
-              infoRef.current.innerHTML = STEP_THREE;
-            }
-
-            // After typing is complete, wait a few seconds and then redirect to Perplexity AI
-            setTimeout(() => {
-              const url = new URL(config.PERPLEXITY_URL);
-              url.pathname = "/search";
-              url.searchParams.append("q", query);
-
-              // Redirect the current window to Perplexity AI
-              window.location.href = url.toString();
-            }, 3000);
-          }
+        // If we've typed all characters, resolve the Promise
+        if (charCount === query.length) {
+          resolve();
         }
-      }, intervalTime);
-    }
-  };
+      };
+
+      // Start the typing animation
+      requestAnimationFrame(type);
+    });
+  }
 
   // Handle search logic when "Enter" is pressed
   const handleSearch = () => {
